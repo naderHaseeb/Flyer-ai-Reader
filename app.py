@@ -236,6 +236,34 @@ def draw_bbox(image_path, bbox):
     return image
 
 
+def crop_bbox_preview(image_path, bbox):
+    if not valid_bbox(bbox):
+        return None
+
+    with Image.open(image_path) as opened_image:
+        image = opened_image.convert("RGB")
+
+    x1, y1, x2, y2 = [float(value) for value in bbox]
+    width, height = image.size
+    pixel_box = (
+        x1 / 1000 * width,
+        y1 / 1000 * height,
+        x2 / 1000 * width,
+        y2 / 1000 * height,
+    )
+    padding = max(
+        8,
+        round(max(pixel_box[2] - pixel_box[0], pixel_box[3] - pixel_box[1]) * 0.06),
+    )
+    crop_box = (
+        max(0, int(pixel_box[0] - padding)),
+        max(0, int(pixel_box[1] - padding)),
+        min(width, int(pixel_box[2] + padding)),
+        min(height, int(pixel_box[3] + padding)),
+    )
+    return image.crop(crop_box)
+
+
 def editable_columns():
     return [
         "product_name",
@@ -555,6 +583,7 @@ def sync_table_selection(page, table):
         st.session_state.pop(selection_key, None)
     else:
         st.session_state[selection_key] = selected_index
+        st.session_state[f"selected_product_{page}"] = selected_index
     return True
 
 
@@ -1046,30 +1075,14 @@ if "flyer_result" in st.session_state:
     with mode_col:
         review_mode = st.radio(
             "Review mode",
-            ["Table View", "Product View"],
+            ["Table View", "Flyer View", "Product View"],
             horizontal=True,
             label_visibility="collapsed",
             key="review_mode",
         )
     
     if review_mode == "Table View":
-        flyer_col, table_col = st.columns([1.0, 1.4], gap="large")
-        with flyer_col:
-            st.markdown("### Flyer")
-            table_selected_idx = st.session_state.get(
-                f"table_selected_product_{page}"
-            )
-            if table_selected_idx in page_df.index:
-                preview_bbox = st.session_state["edited_df"].at[
-                    table_selected_idx,
-                    "bbox",
-                ]
-                st.image(
-                    draw_bbox(image_path, preview_bbox),
-                    width="stretch",
-                )
-            else:
-                st.image(image_path, width="stretch")
+        table_col = st.container()
         with table_col:
             statuses = page_df.apply(product_review_status, axis=1)
             complete_count = int((statuses == "Complete").sum())
@@ -1341,11 +1354,23 @@ if "flyer_result" in st.session_state:
                         st.success("Bounding box saved.")
 
         with left:
-            st.markdown("### Flyer")
-            if selected_idx is not None and valid_bbox(saved_bbox):
-                st.image(draw_bbox(image_path, saved_bbox), width="stretch")
+            if review_mode == "Flyer View":
+                st.markdown("### Flyer")
+                if selected_idx is not None and valid_bbox(saved_bbox):
+                    st.image(draw_bbox(image_path, saved_bbox), width="stretch")
+                else:
+                    st.image(image_path, width="stretch")
             else:
-                st.image(image_path, width="stretch")
+                st.markdown("### Product")
+                zoomed_crop = (
+                    crop_bbox_preview(image_path, saved_bbox)
+                    if selected_idx is not None
+                    else None
+                )
+                if zoomed_crop is not None:
+                    st.image(zoomed_crop, width="stretch")
+                else:
+                    st.info("Product crop unavailable")
     
     st.write("")
     approve_col = st.columns([1, 2, 1])[1]

@@ -153,6 +153,10 @@ def call_openrouter(
     payload = {
         "model": model_id,
         "temperature": 0,
+        "provider": {
+            "sort": "throughput",
+            "allow_fallbacks": True,
+        },
         "messages": [
             {
                 "role": "user",
@@ -183,12 +187,27 @@ def call_openrouter(
         )
     except requests.exceptions.ReadTimeout:
         time.sleep(2)
-        response = requests.post(
-            OPENROUTER_URL,
-            headers=headers,
-            json=payload,
-            timeout=timeout,
-        )
+        try:
+            response = requests.post(
+                OPENROUTER_URL,
+                headers=headers,
+                json=payload,
+                timeout=timeout,
+            )
+        except requests.exceptions.ReadTimeout as exc:
+            latency = time.perf_counter() - start
+            update_trace_metadata(
+                model_id=model_id,
+                prompt_type=prompt_type,
+                page_number=page_number,
+                contact_sheet_number=contact_sheet_number,
+                latency_seconds=latency,
+                failure_details="OpenRouter timed out twice",
+            )
+            raise RuntimeError(
+                "The AI provider timed out twice. Please try processing the "
+                "flyer again in a moment."
+            ) from exc
 
     latency = time.perf_counter() - start
 
