@@ -42,4 +42,5 @@ Human verifies it.**
 
 ## Author
 **Nader Haseeb**
+
 General Assembly Data Science Capstone Project
