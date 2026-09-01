@@ -1,36 +1,45 @@
-# Flyer AI Reader — Local Version
+# Flyer AI Reader
 
-Use this version locally instead of Streamlit Cloud.
+Flyer AI Reader is an AI-powered system that extracts structured product information from supermarket promotional flyers.
 
-The office OpenRouter key works in Colab but the same generation request is returning 401 from Streamlit Cloud. The capstone brief explicitly does not require deployment, so this local version is enough for the project.
+It combines:
 
-## Mac
+- **YOLO** for detecting products and bounding boxes
+- **Qwen Vision-Language Model** for reading product names, quantities, prices, currencies, and promotional dates
+- **Pydantic** for validating AI-generated data
+- **Streamlit** for human review, editing, approval, and rejection
+- **LangSmith** for monitoring model calls, latency, tokens, and cost
 
-Open Terminal in this folder and run:
+## How It Works
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-export OPENROUTER_API_KEY='paste-your-key-here'
-streamlit run app.py
-```
+Flyer PDF → YOLO Detection → Product Crops → Qwen Extraction → Validation → Human Review → Saved Results
 
-Then open http://localhost:8501
+The main idea is simple:
 
-The OpenRouter key is read from the `OPENROUTER_API_KEY` environment
-variable. It is not entered or displayed in the Streamlit page. Set the
-variable in the same Terminal window used to launch the app.
+**YOLO finds it.  
+Qwen reads it.  
+Python connects it.  
+Pydantic validates it.  
+Human verifies it.**
 
-## Modes
+## Technologies
 
-1. Live extraction with OpenRouter
-   - Paste the same office key that works in Colab into the sidebar.
-   - Upload the flyer PDF.
-   - Click Process flyer.
+- Python
+- Streamlit
+- YOLO
+- Qwen3-VL-32B
+- OpenRouter
+- Pydantic
+- PyMuPDF
+- Pillow
+- Pandas
+- SQLite
+- LangSmith
 
-2. Review existing Colab JSON
-   - Run the working final extraction notebook in Colab.
-   - Download its final JSON.
-   - Upload the PDF + JSON here.
-   - Review, edit, highlight boxes, approve/reject, and save corrections.
+
+## Client
+- Voix Me Technologies
+
+## Author
+**Nader Haseeb**
+General Assembly Data Science Capstone Project
