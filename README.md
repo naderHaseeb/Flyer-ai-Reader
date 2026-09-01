@@ -43,4 +43,10 @@ Human verifies it.**
 ## Author
 **Nader Haseeb**
 
+## App Link
+https://flyer-ai-reader-d4d.streamlit.app/
+
+## Video Link
+https://drive.google.com/file/d/12C-JfFapu8vZO7el5iW84vRkmL8AjKu8/view?usp=sharing
+
 General Assembly Data Science Capstone Project
